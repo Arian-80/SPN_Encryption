@@ -40,6 +40,19 @@ def permutate(plaintext, permutation_table):
 
 def encrypt(plaintext, key, substitution_table, boxSize, permutation_table, rounds):
     keySchedules = createKeySchedules(key, boxSize, rounds)
+    plaintext_length = len(plaintext)
+    for i in range(1, rounds): # r=1 to Nr-1
+        plaintext = format((keyMix(int(plaintext, 2), keySchedules, i)),
+                           f'0{plaintext_length}b')
+        plaintext = substitute(plaintext, substitution_table, boxSize)
+        plaintext = permutate(plaintext, permutation_table)
+
+    plaintext = format((keyMix(int(plaintext, 2), keySchedules, rounds)), #Nr
+                       f'0{plaintext_length}b')
+    plaintext = substitute(plaintext, substitution_table, boxSize)
+
+    return format((keyMix(int(plaintext, 2), keySchedules, rounds+1)), #Nr+1
+                  f'0{plaintext_length}b')
 
 def setupProcess():
     file = open("tables.txt", "r")
@@ -57,16 +70,19 @@ def setupProcess():
 
     permutation_table = [x-1 for x in permutation_table]
 
-    boxSize = 4
-    keySchedules = createKeySchedules('11100111011001111001000000111101', boxSize, 4)
-
     plaintext = '0100111010100001'
-    plaintext_length = len(plaintext)
-    plaintext = format((keyMix(int(plaintext, 2), keySchedules, 1)), f'0{plaintext_length}b')
+    key = '11100111011001111001000000111101'
+    ciphertext = encrypt(plaintext, key, substitution_table, 4, permutation_table, 4)
+    print(ciphertext)
 
-    plaintext = substitute(plaintext, substitution_table, boxSize)
-    plaintext = permutate(plaintext, permutation_table)
-
+    # plaintext = '1011001001000011'
+    # keySchedules = createKeySchedules(key, 4, 4)
+    # key = permutate('0111011001111001', inverseTable(permutation_table)) # Key 2
+    # keySchedules[1] = int(key, 2)
+    # plaintext = permutate(plaintext, inverseTable(permutation_table))
+    # plaintext = format((keyMix(int(plaintext, 2), keySchedules, 2)),
+    #                     f'0{len(plaintext)}b')
+    # print(plaintext)
 
 # Main program
 setupProcess()
