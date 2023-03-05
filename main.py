@@ -18,14 +18,14 @@ def inverseTable(table):
         inversedTable[table[i]] = i
     return inversedTable
 
-def createKeySchedules(key, boxSize, rounds, encrypt=True, inverse_permutation_table=None):
+def createKeySchedules(key, boxSize, rounds, inverse_permutation_table, encrypt):
     portion = len(key) - rounds*boxSize
-    keySchedules = [int(key[i:i+portion], 2) for i in range(0, (rounds+1)*boxSize, boxSize)]
-    if (encrypt):
-        return keySchedules
-    else:
-        if (inverse_permutation_table[0] == None): return -1
-        return reverseAndPermutateKeys(keySchedules, inverse_permutation_table, portion)
+    keySchedules = [int(key[i:i+portion], 2)
+                    for i in range(0, (rounds+1)*boxSize, boxSize)]
+    return (
+        keySchedules if encrypt else
+        reverseAndPermutateKeys(keySchedules, inverse_permutation_table, portion)
+    )
 
 def reverseAndPermutateKeys(keySchedules, inverse_permutation_table, portion):
     newKeySchedules = copy.deepcopy(keySchedules)
@@ -54,7 +54,7 @@ def permutate(plaintext, permutation_table):
 
 def encrypt(plaintext, key, substitution_table, boxSize, permutation_table,
             rounds, encrypt=True):
-    keySchedules = createKeySchedules(key, boxSize, rounds, encrypt, permutation_table)
+    keySchedules = createKeySchedules(key, boxSize, rounds, permutation_table, encrypt)
     plaintext_length = len(plaintext)
     for i in range(1, rounds): # r=1 to Nr-1
         plaintext = format((keyMix(int(plaintext, 2), keySchedules, i)),
